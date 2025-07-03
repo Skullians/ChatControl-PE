@@ -182,7 +182,7 @@ public final class TourSubCommand extends MainSubCommand {
 			pages.add($.out(HookManager.isMultiverseCoreLoaded(), "Multiverse-Core"));
 			pages.add($.out(HookManager.isPlaceholderAPILoaded(), "PlaceholderAPI"));
 			pages.add($.out(HookManager.isPlotSquaredLoaded(), "PlotSquared"));
-			pages.add($.out(HookManager.isProtocolLibLoaded(), "ProtocolLib"));
+			pages.add($.out(HookManager.isPacketEventsLoaded(), "PacketEvents"));
 			pages.add($.out(HookManager.isTownyLoaded(), "Towny"));
 			pages.add($.out(HookManager.isTownyChatLoaded(), "TownyChat"));
 

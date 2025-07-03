@@ -1,15 +1,13 @@
 package org.mineacademy.chatcontrol.model;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTabComplete;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTabComplete;
 import org.bukkit.entity.Player;
 import org.mineacademy.chatcontrol.SenderCache;
 import org.mineacademy.chatcontrol.settings.Settings;
@@ -23,17 +21,13 @@ import org.mineacademy.fo.model.PacketListener;
 import org.mineacademy.fo.platform.FoundationPlayer;
 import org.mineacademy.fo.platform.Platform;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketContainer;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Represents packet handling using ProtocolLib
+ * Represents packet handling using PacketEvents
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AutoRegister(hideIncompatibilityWarnings = true)
@@ -61,7 +55,7 @@ public final class Packets extends PacketListener {
 	@Override
 	public void onRegister() {
 
-		if (!Settings.ProtocolLib.ENABLED)
+		if (!Settings.PacketEvents.ENABLED)
 			return;
 
 		//
@@ -70,25 +64,26 @@ public final class Packets extends PacketListener {
 		if (MinecraftVersion.olderThan(V.v1_13)) {
 
 			// Receiving tab complete request
-			this.addReceivingListener(ListenerPriority.HIGHEST, PacketType.Play.Client.TAB_COMPLETE, event -> {
-
-				final String buffer = event.getPacket().getStrings().read(0);
+			this.addReceivingListener(PacketListenerPriority.HIGHEST, PacketType.Play.Client.TAB_COMPLETE, event -> {
+				final WrapperPlayClientTabComplete packet = new WrapperPlayClientTabComplete(event);
+				final String buffer = packet.getText();
+				final Player player = event.getPlayer();
 
 				// Save for sending later, see below
-				this.buffers.put(event.getPlayer().getName(), buffer);
+				this.buffers.put(player.getName(), buffer);
 			});
 
 			// Filter players from tab complete
-			this.addSendingListener(ListenerPriority.HIGHEST, PacketType.Play.Server.TAB_COMPLETE, event -> {
+			this.addSendingListener(PacketListenerPriority.HIGHEST, PacketType.Play.Server.TAB_COMPLETE, event -> {
+				final Player player = event.getPlayer();
+				final String buffer = this.buffers.remove(player.getName());
 
-				final String buffer = this.buffers.remove(event.getPlayer().getName());
-
-				if (buffer == null || event.getPlayer().hasPermission(Permissions.Bypass.TAB_COMPLETE))
+				if (buffer == null || player.hasPermission(Permissions.Bypass.TAB_COMPLETE))
 					return;
 
-				final boolean hasVanishBypass = event.getPlayer().hasPermission(Permissions.Bypass.VANISH);
-				final PacketContainer packet = event.getPacket();
-				final List<String> suggestions = CommonCore.toList(packet.getStringArrays().read(0));
+				final boolean hasVanishBypass = player.hasPermission(Permissions.Bypass.VANISH);
+				final WrapperPlayServerTabComplete packet = new WrapperPlayServerTabComplete(event);
+				final List<WrapperPlayServerTabComplete.CommandMatch> suggestions = packet.getCommandMatches();
 				final Set<String> nicks = new HashSet<>();
 				final boolean isCommand = buffer.charAt(0) == '/';
 
@@ -100,36 +95,39 @@ public final class Packets extends PacketListener {
 				}
 
 				// Remove vanished players
-				for (final Iterator<String> it = suggestions.iterator(); it.hasNext();) {
-					final String suggestion = it.next();
-					final Player player = Players.findPlayer(suggestion);
+				for (int i = 0; i < suggestions.size(); i++) {
+					final WrapperPlayServerTabComplete.CommandMatch suggestion = suggestions.get(i);
+					final String suggestionText = suggestion.getText();
+					final Player suggestedPlayer = Players.findPlayer(suggestionText);
 
-					if (player != null) {
-						if (hasVanishBypass || !PlayerUtil.isVanished(player)) {
-							final String nick = Settings.TabComplete.USE_NICKNAMES ? Players.getNickOrNullColorless(player) : null;
+					if (suggestedPlayer != null) {
+						if (hasVanishBypass || !PlayerUtil.isVanished(suggestedPlayer)) {
+							final String nick = Settings.TabComplete.USE_NICKNAMES ? Players.getNickOrNullColorless(suggestedPlayer) : null;
 
-							nicks.add(nick != null ? nick : player.getName());
+							suggestions.add(new WrapperPlayServerTabComplete.CommandMatch(nick != null ? nick : suggestedPlayer.getName()));
 						}
 
-						it.remove();
+						suggestions.remove(suggestion);
 					}
 
-					else if (isCommand && !Settings.TabComplete.WHITELIST.isInListRegex(suggestion))
-						it.remove();
+					else if (isCommand && !Settings.TabComplete.WHITELIST.isInListRegex(suggestionText))
+						suggestions.remove(suggestion);
 				}
 
 				// Add all nicknames matching the word, ignoring commands
 				if (!isCommand) {
 					final String word = buffer.endsWith(" ") ? "" : CommonCore.last(buffer.split(" "));
 
-					nicks.addAll(CommonCore.tabComplete(word, Players.getPlayerNamesForTabComplete(hasVanishBypass)));
+					List<WrapperPlayServerTabComplete.CommandMatch> matches = CommonCore.tabComplete(word, Players.getPlayerNamesForTabComplete(hasVanishBypass))
+							.stream()
+							.map(WrapperPlayServerTabComplete.CommandMatch::new)
+							.collect(Collectors.toList());
+					suggestions.addAll(matches);
 				}
 
-				// Merge together and sort
-				final List<String> allTogether = CommonCore.joinLists(suggestions, nicks);
-				Collections.sort(allTogether);
-
-				packet.getStringArrays().write(0, CommonCore.toArray(allTogether));
+				// Sort
+				suggestions.sort(Comparator.comparing(WrapperPlayServerTabComplete.CommandMatch::getText, String.CASE_INSENSITIVE_ORDER));
+				packet.setCommandMatches(suggestions);
 			});
 		}
 

@@ -28,7 +28,7 @@ public final class PurgeSubCommand extends MainSubCommand {
 	 */
 	@Override
 	protected void onCommand() {
-		this.checkBoolean(HookManager.isProtocolLibLoaded(), "This feature requires ProtocolLib.");
+		this.checkBoolean(HookManager.isPacketEventsLoaded(), "This feature requires PacketEvents.");
 
 		for (final String playerName : this.args)
 			this.pollCache(playerName, cache -> {

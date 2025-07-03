@@ -128,13 +128,13 @@ public final class ChatControlProxyListenerBukkit extends org.mineacademy.fo.pro
 			final String removeTypeName = input.readString();
 			final UUID messageId = input.readUUID();
 
-			if (HookManager.isProtocolLibLoaded()) {
+			if (HookManager.isPacketEventsLoaded()) {
 				final Packets.RemoveMode removeMode = ReflectionUtil.lookupEnum(Packets.RemoveMode.class, removeTypeName);
 
 				Packets.getInstance().removeMessage(removeMode, messageId);
 
 			} else
-				CommonCore.logTimed(3600, "Received a packet from proxy to remove a chat message. ProtocolLib is missing, ignoring. This message will not show for the next hour.");
+				CommonCore.logTimed(3600, "Received a packet from proxy to remove a chat message. PacketEvents is missing, ignoring. This message will not show for the next hour.");
 		}
 
 		else if (this.packet == ChatControlProxyMessage.SPY_UUID) {

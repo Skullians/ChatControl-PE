@@ -209,8 +209,8 @@ public final class ChatControl extends BukkitPlugin {
 		if (HookManager.isLiteBansLoaded() && !HookManager.isVaultLoaded())
 			CommonCore.warning("Please install Vault plugin to enable prefix/suffix/group variables since you have LiteBans installed.");
 
-		if (Remain.isFolia() && !HookManager.isProtocolLibLoaded())
-			CommonCore.warning("Please install ProtocolLib when on Folia otherwise parts of the plugin might not work.");
+		if (Remain.isFolia() && !HookManager.isPacketEventsLoaded()) // TODO - why is this necessary? kangarko?
+			CommonCore.warning("Please install PacketEvents when on Folia otherwise parts of the plugin might not work.");
 
 		if (Platform.isPluginInstalled("TAB"))
 			CommonCore.warning("TAB detected. Use %chatcontrol_player_nick_section%, %chatcontrol_player_prefix_section% and %chatcontrol_player_suffix_section% variables in groups.yml to ensure compatibility.");

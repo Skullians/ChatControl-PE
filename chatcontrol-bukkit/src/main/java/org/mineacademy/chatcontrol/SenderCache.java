@@ -62,7 +62,7 @@ public final class SenderCache {
 	private final Map<LogType, Queue<Output>> lastCommunication = new HashMap<>();
 
 	/**
-	 * Stores last packets sent, caught by ProtocolLib
+	 * Stores last packets sent, caught by PacketEvents
 	 *
 	 * 100 is the maximum chat line count you can view in history
 	 * This is used to delete messages

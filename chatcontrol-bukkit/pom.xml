@@ -16,6 +16,13 @@
 		<main.class>org.mineacademy.chatcontrol.ChatControl</main.class>
 	</properties>
 
+	<repositories>
+		<repository>
+			<id>codemc-releases</id>
+			<url>https://repo.codemc.io/repository/maven-releases/</url>
+		</repository>
+	</repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.mineacademy</groupId>
@@ -71,6 +78,12 @@
 			<groupId>org.mineacademy.plugin</groupId>
 			<artifactId>AuthMe</artifactId>
 			<version>5.6.0-SNAPSHOT-2622</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.retrooper</groupId>
+			<artifactId>packetevents-spigot</artifactId>
+			<version>2.8.0</version>
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>

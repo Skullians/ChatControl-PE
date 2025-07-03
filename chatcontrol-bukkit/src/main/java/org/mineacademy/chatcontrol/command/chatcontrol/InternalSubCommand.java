@@ -61,11 +61,11 @@ public final class InternalSubCommand extends MainSubCommand {
 		}
 
 		else if ("remove".equals(param)) {
-			if (HookManager.isProtocolLibLoaded())
+			if (HookManager.isPacketEventsLoaded())
 				Packets.getInstance().removeMessage(Packets.RemoveMode.SPECIFIC_MESSAGE, uuid);
 			else
 				// Every 3 hours broadcast this
-				CommonCore.logTimed(3600 * 3, "Warning: Attempted to remove a chat message but ProtocolLib plugin is missing, please install it. Ignoring...");
+				CommonCore.logTimed(3600 * 3, "Warning: Attempted to remove a chat message but PacketEvents plugin is missing, please install it. Ignoring...");
 
 			if (HookManager.isDiscordSRVLoaded() && Settings.Discord.ENABLED)
 				Discord.getInstance().removeChannelMessage(uuid);

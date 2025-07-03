@@ -1223,16 +1223,16 @@ Discord:
   Send_Messages_As_Bot: true
 
 # -------------------------------------------------------------------------------------------------
-# ProtocolLib integration.
+# PacketEvents integration.
 # -------------------------------------------------------------------------------------------------
-ProtocolLib: 
+PacketEvents:
   
   # Removes vanished players from tab-completion and allows deleting chat messages.
   # Disable if using ViaVersion or ProtocolSupport and players are getting kicked out.
   #
   # **NOTICE** Since this stores every chat packet for each online player to make the [X] message 
   # feature work, it can potentially take up more RAM on large networks. This, in most cases, won't
-  # affect plugin's performance.
+  # affect the plugin's performance.
   Enabled: true
   
 # -------------------------------------------------------------------------------------------------

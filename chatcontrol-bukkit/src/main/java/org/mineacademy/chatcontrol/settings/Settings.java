@@ -1122,17 +1122,17 @@ public final class Settings extends SimpleSettings {
 	}
 
 	/**
-	 * ProtocolLib support.
+	 * PacketEvents support.
 	 */
-	public static class ProtocolLib {
+	public static class PacketEvents {
 
 		public static Boolean ENABLED;
 
 		private static void init() {
-			setPathPrefix("ProtocolLib");
+			setPathPrefix("PacketEvents");
 
 			if (isSet("Listen_For_Packets"))
-				move("Listen_For_Packets", "ProtocolLib.Enabled");
+				move("Listen_For_Packets", "PacketEvents.Enabled");
 
 			ENABLED = getBoolean("Enabled");
 		}
